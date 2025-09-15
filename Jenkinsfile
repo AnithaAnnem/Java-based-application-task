@@ -4,11 +4,10 @@ pipeline {
     tools {
         jdk 'Java17'          // JDK configured in Jenkins
         maven 'Maven3.6.3'    // Maven configured in Jenkins
-        // Removed: sonarQubeScanner (not valid here)
     }
 
     environment {
-        SONARQUBE_ENV = 'sonar-server' // Must match name in Jenkins > Configure System
+        SONARQUBE_ENV = 'sonar-server' // Matches the name in "Configure System" > SonarQube server
     }
 
     stages {
@@ -41,13 +40,18 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
+                echo "Running SonarQube analysis..."
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    sh '''
-                        sonar-scanner \
-                          -Dsonar.projectKey=java-sample \
-                          -Dsonar.sources=src \
-                          -Dsonar.java.binaries=target
-                    '''
+                    script {
+                        // Dynamically get the SonarQube Scanner path
+                        def scannerHome = tool 'SonarQube_Scanner'
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                              -Dsonar.projectKey=java-sample \
+                              -Dsonar.sources=src \
+                              -Dsonar.java.binaries=target
+                        """
+                    }
                 }
             }
         }
@@ -77,13 +81,13 @@ pipeline {
 
     post {
         success {
-            echo "Build and code quality check completed successfully."
+            echo "✅ Build and code quality check completed successfully."
         }
         failure {
-            echo "Build or code quality check failed. Check logs for details."
+            echo "❌ Build or code quality check failed. Check logs for details."
         }
         always {
-            echo "Pipeline execution finished."
+            echo "ℹ️ Pipeline execution finished."
         }
     }
 }
