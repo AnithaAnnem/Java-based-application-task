@@ -38,7 +38,7 @@ pipeline {
             }
         }
 
-        stage('Code Quality') {  // <-- Renamed stage for clarity
+        stage('Code Quality') {  // SonarQube analysis
             steps {
                 echo "Running SonarQube code quality analysis..."
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
@@ -57,7 +57,7 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 1, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {  // Increased timeout here
                     waitForQualityGate abortPipeline: true
                 }
             }
