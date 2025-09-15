@@ -4,11 +4,11 @@ pipeline {
     tools {
         jdk 'Java17'          // JDK configured in Jenkins
         maven 'Maven3.6.3'    // Maven configured in Jenkins
-        sonarQubeScanner 'SonarQube_Scanner' // <-- Add this so SonarQube Scanner is properly registered
+        // Removed: sonarQubeScanner (not valid here)
     }
 
     environment {
-        SONARQUBE_ENV = 'sonar-server' // <-- Make sure this matches the name in Jenkins config
+        SONARQUBE_ENV = 'sonar-server' // Must match name in Jenkins > Configure System
     }
 
     stages {
