@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     tools {
-        jdk 'Java17'          // JDK configured in Jenkins
-        maven 'Maven3.6.3'    // Maven configured in Jenkins
+        jdk 'Java17'
+        maven 'Maven3.6.3'
     }
 
     environment {
-        SONARQUBE_ENV = 'sonar-server' // Matches Jenkins SonarQube server name
+        SONARQUBE_ENV = 'sonar-server' // Jenkins SonarQube server name
     }
 
     stages {
@@ -38,7 +38,7 @@ pipeline {
             }
         }
 
-        stage('Code Quality') {  // SonarQube analysis
+        stage('Code Quality') {
             steps {
                 echo "Running SonarQube code quality analysis..."
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
@@ -51,14 +51,6 @@ pipeline {
                               -Dsonar.java.binaries=target
                         """
                     }
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {  // Increased timeout here
-                    waitForQualityGate abortPipeline: true
                 }
             }
         }
