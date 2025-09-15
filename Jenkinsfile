@@ -6,10 +6,6 @@ pipeline {
         maven 'Maven3.6.3'  // Ensure Maven 3.6.3 is configured in Jenkins
     }
 
-    environment {
-        SONARQUBE = 'SonarQube_Scanner'   // Jenkins SonarQube scanner installation name
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -40,18 +36,14 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SONAR-ANITHA') {  // Your SonarQube server config name in Jenkins
-                    withCredentials([string(credentialsId: 'java-sample', variable: 'SONAR_TOKEN')]) {
-                        sh """
-                          ${tool SONARQUBE}/bin/sonar-scanner \
-                          -Dsonar.projectKey=java-sample \
-                          -Dsonar.projectName=java-sample \
-                          -Dsonar.sources=src \
-                          -Dsonar.java.binaries=target \
-                          -Dsonar.host.url=http://54.197.1.182:9000 \
-                          -Dsonar.login=$SONAR_TOKEN
-                        """
-                    }
+                withSonarQubeEnv('Sonar') {   // Must match the name in your Jenkins config
+                    sh """
+                      ${tool 'SonarQube_Scanner'}/bin/sonar-scanner \
+                      -Dsonar.projectKey=java-sample \
+                      -Dsonar.projectName=java-sample \
+                      -Dsonar.sources=src \
+                      -Dsonar.java.binaries=target
+                    """
                 }
             }
         }
