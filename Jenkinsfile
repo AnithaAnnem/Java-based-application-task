@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        jdk 'Java17'        // Ensure JDK 17 is configured in Jenkins
-        maven 'Maven3.6.3'  // Ensure Maven 3.6.3 is configured in Jenkins
+        jdk 'Java17'          // JDK configured in Jenkins
+        maven 'Maven3.6.3'    // Maven configured in Jenkins
     }
 
     stages {
@@ -36,14 +36,21 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('Sonar') {   // Must match the name in your Jenkins config
+                withSonarQubeEnv('Sonar') {   // 'Sonar' = the name from Jenkins SonarQube server config
                     sh """
                       ${tool 'SonarQube_Scanner'}/bin/sonar-scanner \
                       -Dsonar.projectKey=java-sample \
-                      -Dsonar.projectName=java-sample \
                       -Dsonar.sources=src \
                       -Dsonar.java.binaries=target
                     """
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') { // waits until SonarQube finishes analysis
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
@@ -65,10 +72,10 @@ pipeline {
 
     post {
         success {
-            echo "Build completed successfully."
+            echo "Build and code quality check completed successfully."
         }
         failure {
-            echo "Build failed. Check logs for details."
+            echo "Build or code quality check failed. Check logs for details."
         }
         always {
             echo "Pipeline execution finished."
