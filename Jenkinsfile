@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        SONARQUBE_ENV = 'sonar-server' // Matches the name in "Configure System" > SonarQube server
+        SONARQUBE_ENV = 'sonar-token' // Must match the name in "Configure System" > SonarQube server
     }
 
     stages {
@@ -38,12 +38,11 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
+        stage('Code Quality') {
             steps {
-                echo "Running SonarQube analysis..."
+                echo "Running SonarQube Code Quality analysis..."
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
                     script {
-                        // Dynamically get the SonarQube Scanner path
                         def scannerHome = tool 'SonarQube_Scanner'
                         sh """
                             ${scannerHome}/bin/sonar-scanner \
