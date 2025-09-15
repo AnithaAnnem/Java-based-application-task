@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     tools {
-        jdk 'Java11'
+        jdk 'Java11'   // Or use Java17 if Jenkins is configured with it
         maven 'Maven3'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/faithletzkus/SecretSantaJava.git', branch: 'main'
+                git url: 'https://github.com/AnithaAnnem/Java-based-application-task.git', branch: 'main'
             }
         }
 
