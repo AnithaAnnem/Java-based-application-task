@@ -4,6 +4,11 @@ pipeline {
     tools {
         jdk 'Java17'          // JDK configured in Jenkins
         maven 'Maven3.6.3'    // Maven configured in Jenkins
+        sonarQubeScanner 'SonarQube_Scanner' // <-- Add this so SonarQube Scanner is properly registered
+    }
+
+    environment {
+        SONARQUBE_ENV = 'sonar-server' // <-- Make sure this matches the name in Jenkins config
     }
 
     stages {
@@ -36,20 +41,20 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar-token') {   // must match Jenkins SonarQube config name
-                    sh """
-                      ${tool 'SonarQube_Scanner'}/bin/sonar-scanner \
-                      -Dsonar.projectKey=java-sample \
-                      -Dsonar.sources=src \
-                      -Dsonar.java.binaries=target
-                    """
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    sh '''
+                        sonar-scanner \
+                          -Dsonar.projectKey=java-sample \
+                          -Dsonar.sources=src \
+                          -Dsonar.java.binaries=target
+                    '''
                 }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 1, unit: 'HOURS') { // waits until SonarQube finishes analysis
+                timeout(time: 1, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
