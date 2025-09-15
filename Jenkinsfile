@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     tools {
-        jdk 'Java11'
-        maven 'Maven3'
+        jdk 'Java17'        // Ensure JDK 17 is configured in Jenkins with this exact name
+        maven 'Maven3.6.3'  // Ensure Maven 3.6.3 is configured in Jenkins with this exact name
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/faithletzkus/SecretSantaJava.git', branch: 'main'
+                echo "Checking out code from GitHub..."
+                git url: 'https://github.com/AnithaAnnem/Java-based-application-task.git', branch: 'main'
             }
         }
 
@@ -27,7 +28,8 @@ pipeline {
             }
             post {
                 always {
-                    junit '**/target/surefire-reports/*.xml'
+                    echo "Publishing JUnit test results..."
+                    junit 'target/surefire-reports/*.xml'
                 }
             }
         }
@@ -41,8 +43,21 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
+                echo "Archiving JAR artifact..."
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Build completed successfully."
+        }
+        failure {
+            echo "Build failed. Check logs for details."
+        }
+        always {
+            echo "Pipeline execution finished."
         }
     }
 }
