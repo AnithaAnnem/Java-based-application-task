@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        SONARQUBE_ENV = 'sonar-token' // Must match the name in "Configure System" > SonarQube server
+        SONARQUBE_ENV = 'sonar-server' // Matches Jenkins SonarQube server name
     }
 
     stages {
@@ -38,9 +38,9 @@ pipeline {
             }
         }
 
-        stage('Code Quality') {
+        stage('Code Quality') {  // <-- Renamed stage for clarity
             steps {
-                echo "Running SonarQube Code Quality analysis..."
+                echo "Running SonarQube code quality analysis..."
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
                     script {
                         def scannerHome = tool 'SonarQube_Scanner'
