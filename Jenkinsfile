@@ -2,13 +2,14 @@ pipeline {
     agent any
 
     tools {
-        jdk 'Java17'   // Make sure Jenkins has JDK 17 configured with this name
-        maven 'Maven3.6.3'  // Make sure Maven 3.6.3 is configured in Jenkins with this exact name
+        jdk 'Java17'           // Make sure Jenkins has JDK 17 configured with this exact name
+        maven 'Maven3.6.3'     // Make sure Maven 3.6.3 is configured in Jenkins with this exact name
     }
 
     stages {
         stage('Checkout') {
             steps {
+                echo "Checking out code from GitHub..."
                 git url: 'https://github.com/AnithaAnnem/Java-based-application-task.git', branch: 'main'
             }
         }
@@ -27,6 +28,7 @@ pipeline {
             }
             post {
                 always {
+                    // JUnit will pick up the Surefire reports
                     junit '**/target/surefire-reports/*.xml'
                 }
             }
@@ -41,8 +43,18 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
+                echo "Archiving JAR artifact..."
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline completed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check logs for details."
         }
     }
 }
