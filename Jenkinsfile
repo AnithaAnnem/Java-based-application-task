@@ -36,7 +36,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('Sonar-token') {   // must match Jenkins SonarQube config name
+                withSonarQubeEnv('sonar-token') {   // must match Jenkins SonarQube config name
                     sh """
                       ${tool 'SonarQube_Scanner'}/bin/sonar-scanner \
                       -Dsonar.projectKey=java-sample \
