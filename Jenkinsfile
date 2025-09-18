@@ -22,10 +22,6 @@ pipeline {
             steps {
                 echo "Running Gitleaks secret scanning..."
                 sh '''
-                    if ! command -v gitleaks &> /dev/null; then
-                      echo "ERROR: Gitleaks not installed on this agent. Please install it manually."
-                      exit 1
-                    fi
                     # Run Gitleaks scan (exit code 0 = no leaks, 1 = leaks found)
                     gitleaks detect --source . --report-path gitleaks-report.json --no-banner || true
                 '''
@@ -123,13 +119,13 @@ pipeline {
 
     post {
         success {
-            echo " Build, tests, scans, and packaging completed successfully."
+            echo "Build, tests, scans, and packaging completed successfully."
         }
         failure {
-            echo " Pipeline failed. Check logs and reports."
+            echo "Pipeline failed. Check logs and reports."
         }
         always {
-            echo " Pipeline execution finished."
+            echo "Pipeline execution finished."
         }
     }
 }
