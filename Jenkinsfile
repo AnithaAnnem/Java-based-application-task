@@ -83,11 +83,12 @@ pipeline {
 
         stage('Dependency Scanning - OWASP Dependency Check') {
             steps {
-                echo "Scanning dependencies for vulnerabilities (offline/local mode)..."
+                echo "Scanning dependencies for vulnerabilities (offline mode)..."
                 sh '''
                     mkdir -p dependency-check-data
                     mvn org.owasp:dependency-check-maven:9.0.9:check \
                         -Danalyzer.nvd.api.enabled=false \
+                        -Dnvd.offline=true \
                         -DdataDirectory=dependency-check-data \
                         -DupdateOnly=false \
                         -DfailBuildOnCVSS=0 \
@@ -130,7 +131,7 @@ pipeline {
             echo "Build, tests, scans, and packaging completed successfully."
         }
         failure {
-            echo "Pipeline failed in some steps, but reports/artifacts are available."
+            echo "Pipeline failed. Check logs and reports."
         }
         always {
             echo "Pipeline execution finished."
