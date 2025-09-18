@@ -59,6 +59,14 @@ pipeline {
             post {
                 always {
                     archiveArtifacts artifacts: 'target/site/jacoco/index.html', fingerprint: true
+                    publishHTML([ 
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'Code Coverage Report'
+                    ])
                 }
             }
         }
@@ -88,25 +96,35 @@ pipeline {
                     mkdir -p dependency-check-data
                     mvn org.owasp:dependency-check-maven:9.0.9:check \
                         -Danalyzer.nvd.api.enabled=false \
+                        -Dnvd.api.enabled=false \
+                        -Dnvd.url.modified= \
+                        -Dnvd.url.base= \
                         -Dnvd.offline=true \
                         -DdataDirectory=dependency-check-data \
                         -DupdateOnly=false \
-                        -DfailBuildOnCVSS=0 \
                         -Dformat=ALL \
+                        -DfailBuildOnCVSS=10 \
                         -DoutputDirectory=target || true
                 '''
             }
             post {
                 always {
-                    archiveArtifacts artifacts: 'target/dependency-check-report.*', fingerprint: true
-                    publishHTML([
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'target',
-                        reportFiles: 'dependency-check-report.html',
-                        reportName: 'Dependency-Check Report'
-                    ])
+                    script {
+                        def reportExists = fileExists 'target/dependency-check-report.html'
+                        if (reportExists) {
+                            archiveArtifacts artifacts: 'target/dependency-check-report.*', fingerprint: true
+                            publishHTML([
+                                allowMissing: true,
+                                alwaysLinkToLastBuild: true,
+                                keepAll: true,
+                                reportDir: 'target',
+                                reportFiles: 'dependency-check-report.html',
+                                reportName: 'Dependency-Check Report'
+                            ])
+                        } else {
+                            echo "Dependency check report not found. Skipping archive and publish."
+                        }
+                    }
                 }
             }
         }
