@@ -14,7 +14,6 @@
     </properties>
 
     <dependencies>
-        <!-- JUnit for tests -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -25,7 +24,6 @@
 
     <build>
         <plugins>
-            <!-- Surefire for unit testing -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -37,7 +35,6 @@
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo for code coverage -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -58,7 +55,6 @@
                 </executions>
             </plugin>
 
-            <!-- OWASP Dependency-Check for dependency vulnerability scanning -->
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
