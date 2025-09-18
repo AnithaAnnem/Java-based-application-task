@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        SONARQUBE_ENV = 'sonar-server' // Jenkins SonarQube server name
+        SONARQUBE_ENV = 'sonar-server' 
     }
 
     stages {
@@ -72,13 +72,13 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and code quality check completed successfully."
+            echo " Build and code quality check completed successfully."
         }
         failure {
-            echo "❌ Build or code quality check failed. Check logs for details."
+            echo " Build or code quality check failed. Check logs for details."
         }
         always {
-            echo "ℹ️ Pipeline execution finished."
+            echo "ℹ Pipeline execution finished."
         }
     }
 }
