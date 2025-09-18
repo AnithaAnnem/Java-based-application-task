@@ -42,7 +42,7 @@ pipeline {
         stage('Unit Testing') {
             steps {
                 echo "Running unit tests..."
-                sh 'mvn test || true'
+                sh 'mvn test'
             }
             post {
                 always {
@@ -54,7 +54,7 @@ pipeline {
         stage('Code Coverage - JaCoCo') {
             steps {
                 echo "Generating code coverage report..."
-                sh 'mvn test jacoco:report || true'
+                sh 'mvn test jacoco:report'
             }
             post {
                 always {
@@ -66,20 +66,16 @@ pipeline {
         stage('Static Code Analysis - SonarQube') {
             steps {
                 echo "Running SonarQube analysis..."
-                script {
-                    try {
-                        withSonarQubeEnv("${SONARQUBE_ENV}") {
-                            def scannerHome = tool 'SonarQube_Scanner'
-                            sh """
-                                ${scannerHome}/bin/sonar-scanner \
-                                  -Dsonar.projectKey=java-sample \
-                                  -Dsonar.sources=src \
-                                  -Dsonar.java.binaries=target \
-                                  -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                            """
-                        }
-                    } catch (err) {
-                        echo "SonarQube analysis failed, skipping: ${err}"
+                withSonarQubeEnv("${SONARQUBE_ENV}") {
+                    script {
+                        def scannerHome = tool 'SonarQube_Scanner'
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                              -Dsonar.projectKey=java-sample \
+                              -Dsonar.sources=src \
+                              -Dsonar.java.binaries=target \
+                              -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+                        """
                     }
                 }
             }
@@ -88,12 +84,20 @@ pipeline {
         stage('Dependency Scanning - OWASP Dependency Check') {
             steps {
                 echo "Scanning dependencies for vulnerabilities..."
-                sh '''
-                    mvn org.owasp:dependency-check-maven:9.0.9:check \
-                        -Danalyzer.nvd.api.enabled=false \
-                        -Dformat=ALL \
-                        -DoutputDirectory=target || true
-                '''
+                script {
+                    try {
+                        sh '''
+                            mvn org.owasp:dependency-check-maven:9.0.9:check \
+                                -Danalyzer.nvd.api.enabled=false \
+                                -DupdateOnly=false \
+                                -DfailBuildOnCVSS=0 \
+                                -Dformat=ALL \
+                                -DoutputDirectory=target || true
+                        '''
+                    } catch (err) {
+                        echo "Dependency-Check failed or could not fetch NVD data, skipping: ${err}"
+                    }
+                }
             }
             post {
                 always {
@@ -113,7 +117,7 @@ pipeline {
         stage('Package') {
             steps {
                 echo "Packaging the application..."
-                sh 'mvn package || true'
+                sh 'mvn package'
             }
         }
 
@@ -127,10 +131,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline completed successfully (with optional warnings)."
+            echo "Build, tests, scans, and packaging completed successfully."
         }
         failure {
-            echo "Pipeline failed in some steps, but reports/artifacts are available."
+            echo "Pipeline failed. Check logs and reports."
         }
         always {
             echo "Pipeline execution finished."
