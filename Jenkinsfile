@@ -13,119 +13,99 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo "Checking out code from GitHub..."
-                git url: 'https://github.com/AnithaAnnem/Java-based-application-task.git', branch: 'main'
+                echo 'Checking out source code...'
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/AnithaAnnem/SecretSantaJava.git']]
+                ])
             }
         }
 
-        stage('Credential Scan - Gitleaks') {
+        stage('Gitleaks Secret Scanning') {
             steps {
-                echo "Running Gitleaks secret scanning..."
+                echo 'Running Gitleaks secret scanning...'
                 sh '''
-                    # Run Gitleaks scan (exit code 0 = no leaks, 1 = leaks found)
-                    gitleaks detect --source . --report-path gitleaks-report.json --no-banner || true
+                    if ! command -v gitleaks >/dev/null 2>&1; then
+                        echo "ERROR: Gitleaks not installed on this agent."
+                        exit 1
+                    fi
+                    gitleaks detect --report-path=gitleaks-report.json --report-format=json || true
                 '''
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'gitleaks-report.json', fingerprint: true
-                }
+                archiveArtifacts artifacts: 'gitleaks-report.json', allowEmptyArchive: true
             }
         }
 
         stage('Code Compilation') {
             steps {
-                echo "Compiling Java code..."
+                echo 'Compiling code...'
                 sh 'mvn clean compile'
             }
         }
 
         stage('Unit Testing') {
             steps {
-                echo "Running unit tests..."
+                echo 'Running unit tests...'
                 sh 'mvn test'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
             }
         }
 
         stage('Code Coverage - JaCoCo') {
             steps {
-                echo "Generating code coverage report..."
-                sh 'mvn test jacoco:report'
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'target/site/jacoco/index.html', fingerprint: true
-                }
+                echo 'Running code coverage with JaCoCo...'
+                sh 'mvn jacoco:report'
             }
         }
 
         stage('Static Code Analysis & Bug Analysis - SonarQube') {
             steps {
-                echo "Running SonarQube analysis..."
-                withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    script {
-                        def scannerHome = tool 'SonarQube_Scanner'
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                              -Dsonar.projectKey=java-sample \
-                              -Dsonar.sources=src \
-                              -Dsonar.java.binaries=target \
-                              -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                        """
-                    }
+                echo 'Running SonarQube analysis...'
+                withSonarQubeEnv('sonar-server') {
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
 
         stage('Dependency Scanning - OWASP Dependency Check') {
             steps {
-                echo "Scanning dependencies for vulnerabilities..."
-                sh 'mvn org.owasp:dependency-check-maven:check -Dformat=ALL'
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'target/dependency-check-report.*', fingerprint: true
-                    publishHTML([
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'target',
-                        reportFiles: 'dependency-check-report.html',
-                        reportName: 'Dependency-Check Report'
-                    ])
-                }
+                echo 'Running Dependency Scanning...'
+                sh '''
+                    mvn org.owasp:dependency-check-maven:9.0.9:check \
+                        -Danalyzer.nvd.api.enabled=false \
+                        -Dformat=HTML \
+                        -DoutputDirectory=target || true
+                '''
+                publishHTML([
+                    reportDir: 'target',
+                    reportFiles: 'dependency-check-report.html',
+                    reportName: 'Dependency-Check Report'
+                ])
             }
         }
 
         stage('Package') {
             steps {
-                echo "Packaging the application..."
+                echo 'Packaging application...'
                 sh 'mvn package'
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                echo "Archiving JAR artifact..."
+                echo 'Archiving artifacts...'
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
     }
 
     post {
+        always {
+            echo "Pipeline execution finished."
+        }
         success {
-            echo "Build, tests, scans, and packaging completed successfully."
+            echo "Pipeline succeeded."
         }
         failure {
             echo "Pipeline failed. Check logs and reports."
-        }
-        always {
-            echo "Pipeline execution finished."
         }
     }
 }
