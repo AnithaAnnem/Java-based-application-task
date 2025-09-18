@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        SONARQUBE_ENV = 'sonar-server' 
+        SONARQUBE_ENV = 'sonar-server'
     }
 
     stages {
@@ -18,29 +18,59 @@ pipeline {
             }
         }
 
-        stage('Clean & Compile') {
+        stage('Credential Scan - Gitleaks') {
             steps {
-                echo "Cleaning workspace and compiling Java code..."
+                echo "Running Gitleaks secret scanning..."
+                sh '''
+                    if ! command -v gitleaks &> /dev/null
+                    then
+                      curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o /usr/local/bin/gitleaks
+                      chmod +x /usr/local/bin/gitleaks
+                    fi
+                    gitleaks detect --source . --report-path gitleaks-report.json --exit-code 1
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'gitleaks-report.json', fingerprint: true
+                }
+            }
+        }
+
+        stage('Code Compilation') {
+            steps {
+                echo "Compiling Java code..."
                 sh 'mvn clean compile'
             }
         }
 
-        stage('Run Unit Tests') {
+        stage('Unit Testing') {
             steps {
                 echo "Running unit tests..."
                 sh 'mvn test'
             }
             post {
                 always {
-                    echo "Publishing JUnit test results..."
                     junit 'target/surefire-reports/*.xml'
                 }
             }
         }
 
-        stage('Code Quality') {
+        stage('Code Coverage - JaCoCo') {
             steps {
-                echo "Running SonarQube code quality analysis..."
+                echo "Generating code coverage report..."
+                sh 'mvn test jacoco:report'
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'target/site/jacoco/index.html', fingerprint: true
+                }
+            }
+        }
+
+        stage('Static Code Analysis & Bug Analysis - SonarQube') {
+            steps {
+                echo "Running SonarQube analysis..."
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
                     script {
                         def scannerHome = tool 'SonarQube_Scanner'
@@ -48,9 +78,22 @@ pipeline {
                             ${scannerHome}/bin/sonar-scanner \
                               -Dsonar.projectKey=java-sample \
                               -Dsonar.sources=src \
-                              -Dsonar.java.binaries=target
+                              -Dsonar.java.binaries=target \
+                              -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                         """
                     }
+                }
+            }
+        }
+
+        stage('Dependency Scanning - OWASP Dependency Check') {
+            steps {
+                echo "Scanning dependencies for vulnerabilities..."
+                sh 'mvn org.owasp:dependency-check-maven:check -Dformat=ALL'
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'target/dependency-check-report.*', fingerprint: true
                 }
             }
         }
@@ -72,13 +115,13 @@ pipeline {
 
     post {
         success {
-            echo " Build and code quality check completed successfully."
+            echo "Build, tests, scans, and packaging completed successfully."
         }
         failure {
-            echo " Build or code quality check failed. Check logs for details."
+            echo "Pipeline failed. Check logs and reports."
         }
         always {
-            echo "ℹ Pipeline execution finished."
+            echo "Pipeline execution finished."
         }
     }
 }
