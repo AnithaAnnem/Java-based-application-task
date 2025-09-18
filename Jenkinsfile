@@ -63,7 +63,7 @@ pipeline {
             }
         }
 
-        stage('Static Code Analysis - SonarQube') {
+        stage('Static Code Analysis & Bug Analysis - SonarQube') {
             steps {
                 echo "Running SonarQube analysis..."
                 withSonarQubeEnv("${SONARQUBE_ENV}") {
@@ -83,27 +83,21 @@ pipeline {
 
         stage('Dependency Scanning - OWASP Dependency Check') {
             steps {
-                echo "Scanning dependencies for vulnerabilities..."
-                script {
-                    try {
-                        sh '''
-                            mvn org.owasp:dependency-check-maven:9.0.9:check \
-                                -Danalyzer.nvd.api.enabled=false \
-                                -DupdateOnly=false \
-                                -DfailBuildOnCVSS=0 \
-                                -Dformat=ALL \
-                                -DoutputDirectory=target || true
-                        '''
-                    } catch (err) {
-                        echo "Dependency-Check failed or could not fetch NVD data, skipping: ${err}"
-                    }
-                }
+                echo "Scanning dependencies for vulnerabilities (offline mode)..."
+                sh '''
+                    mvn org.owasp:dependency-check-maven:9.0.9:check \
+                        -Danalyzer.nvd.api.enabled=false \
+                        -DupdateOnly=false \
+                        -DfailBuildOnCVSS=0 \
+                        -Dformat=ALL \
+                        -DoutputDirectory=target || true
+                '''
             }
             post {
                 always {
                     archiveArtifacts artifacts: 'target/dependency-check-report.*', fingerprint: true
                     publishHTML([
-                        allowMissing: true,
+                        allowMissing: false,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'target',
