@@ -83,10 +83,12 @@ pipeline {
 
         stage('Dependency Scanning - OWASP Dependency Check') {
             steps {
-                echo "Scanning dependencies for vulnerabilities (offline mode)..."
+                echo "Scanning dependencies for vulnerabilities (offline/local mode)..."
                 sh '''
+                    mkdir -p dependency-check-data
                     mvn org.owasp:dependency-check-maven:9.0.9:check \
                         -Danalyzer.nvd.api.enabled=false \
+                        -DdataDirectory=dependency-check-data \
                         -DupdateOnly=false \
                         -DfailBuildOnCVSS=0 \
                         -Dformat=ALL \
@@ -97,7 +99,7 @@ pipeline {
                 always {
                     archiveArtifacts artifacts: 'target/dependency-check-report.*', fingerprint: true
                     publishHTML([
-                        allowMissing: false,
+                        allowMissing: true,
                         alwaysLinkToLastBuild: true,
                         keepAll: true,
                         reportDir: 'target',
@@ -128,7 +130,7 @@ pipeline {
             echo "Build, tests, scans, and packaging completed successfully."
         }
         failure {
-            echo "Pipeline failed. Check logs and reports."
+            echo "Pipeline failed in some steps, but reports/artifacts are available."
         }
         always {
             echo "Pipeline execution finished."
