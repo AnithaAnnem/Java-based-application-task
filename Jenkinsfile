@@ -94,6 +94,14 @@ pipeline {
             post {
                 always {
                     archiveArtifacts artifacts: 'target/dependency-check-report.*', fingerprint: true
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target',
+                        reportFiles: 'dependency-check-report.html',
+                        reportName: 'Dependency-Check Report'
+                    ])
                 }
             }
         }
