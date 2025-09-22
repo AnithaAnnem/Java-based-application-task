@@ -1,6 +1,5 @@
 package SecretSantaJava;
 
-import javax.swing.*;
 import java.util.*;
 import java.util.Scanner;
 
@@ -11,57 +10,33 @@ public class SecretSanta {
     private Map<String, String> humanToSanta;
 
     public SecretSanta() {
-        participants = new ArrayList<String>();
-        santaToHuman = new HashMap<String, String>();
-        humanToSanta = new HashMap<String, String>();
+        participants = new ArrayList<>();
+        santaToHuman = new HashMap<>();
+        humanToSanta = new HashMap<>();
     }
 
-    /**
-     * Adds a name to the participants instance variable
-     * @param name the new participant
-     */
-    public void addParticipant(String name) { participants.add(name); }
+    public void addParticipant(String name) { 
+        participants.add(name); 
+    }
 
-    /**
-     * Used in SecretSantaTester to test out the generated secret santa solution
-     * @return the santaToHuman instance variable of the Santa object
-     */
-    public Map<String, String> getSantaToHuman() { return santaToHuman; }
+    public Map<String, String> getSantaToHuman() { 
+        return santaToHuman; 
+    }
 
-    /**
-     * Randomly generate a santa-human pairs for the participants given.
-     * Save the pairs to the santaToHuman map and humanToSanta map.
-     *
-     * Note: My solution allows for solutions such as
-     * Participants = [a, b, c, d]
-     * SantaToHuman = {a=b, b=a, c=d, d=c}
-     * This solution is comprised of two subgroups where the first person is the Santa of the second and the second is the Santa first.
-     * I allow this to happen because it closer to a truly random solution.
-     * However, it can cause a problem because the last person cannot have themselves.
-     * I solve for this with the remainingHumans list:
-     *     If there are two remaining humans and one of the remaining is the last Santa, that Santa cannot have themselves,
-     *     so the second-to-last Santa must have the last Santa as their human
-     */
     private void generateSantaSolution() {
-        List<String> remainingHumans = new ArrayList<String>();
-        //deep copy of participants to remainingHumans
-        for (String santa : participants) {
-            remainingHumans.add(santa);
-        }
+        List<String> remainingHumans = new ArrayList<>(participants);
         String lastSanta = participants.get(participants.size() - 1);
+
         for (String santa : participants) {
             String human = "";
+
             if (remainingHumans.size() == 1) {
                 human = remainingHumans.get(0);
-            }
-            //if there are two remaining humans and oen of the remaining is the last Santa, that Santa cannot have themselves,
-            //so the second-to-last Santa must have the last Santa as their human
-            else if (remainingHumans.size() == 2 && remainingHumans.contains(lastSanta)) {
+            } else if (remainingHumans.size() == 2 && remainingHumans.contains(lastSanta)) {
                 human = lastSanta;
                 remainingHumans.remove(lastSanta);
-            }
-            else {
-                while (true) { //randomly select next human from the remaining Santas
+            } else {
+                while (true) {
                     int randomIndex = (int) (Math.random() * remainingHumans.size());
                     human = remainingHumans.get(randomIndex);
                     if (!human.equals(santa) && !santaToHuman.containsValue(human)) {
@@ -70,206 +45,132 @@ public class SecretSanta {
                     }
                 }
             }
+
             santaToHuman.put(santa, human);
             humanToSanta.put(human, santa);
         }
     }
 
-
-    /**
-     * Erase the existing solution by clearing the santaToHuman and humanToSanta maps.
-     * Then, generate a new santa solution by calling generateSantaSolution().
-     */
     public void generateNewSantaSolution() {
         santaToHuman.clear();
         humanToSanta.clear();
         generateSantaSolution();
     }
 
-    /**
-     * Create a comma separated String of all the participants in participants.
-     * @return the String of all participants
-     */
     public String generateParticipantsList() {
-        String allParticipants = "";
-        for (String participant : participants) {
-            if (participants.indexOf(participant) != 0) {
-                allParticipants += ", " + participant;
-            }
-            else {
-                allParticipants += participant;
-            }
-        }
-        return allParticipants;
+        return String.join(", ", participants);
     }
 
-    /**
-     * Print the usage for the game mode.
-     * The usage is all accepted inputs from the user and a brief explanation of that input's functionality.
-     */
     public void printGameUsage() {
-        System.out.print("\nParticipants: " + generateParticipantsList() + "\n");
-        System.out.print("Regular Usage:\n");
-        System.out.print("\t Type in your name, Santa, to get your Human.\n");
-        System.out.print("Other Usage:\n");
-        System.out.print("\t \"Help\" to print usage\n");
-        System.out.print("\t \"Edit\" to edit the particpants list and generate a new solution\n");
-        System.out.print("\t \"Get my santa\" to enter a Human and get their Santa\n");
-        System.out.print("\t \"Generate new solution\" to generate a new set of Santa and Human pairs.\n");
-        System.out.println("\t \"End\" to end the program");
+        System.out.println("\nParticipants: " + generateParticipantsList());
+        System.out.println("Regular Usage:");
+        System.out.println("\tType in your name, Santa, to get your Human.");
+        System.out.println("Other Usage:");
+        System.out.println("\t\"Help\" to print usage");
+        System.out.println("\t\"Edit\" to edit the participants list and generate a new solution");
+        System.out.println("\t\"Get my santa\" to enter a Human and get their Santa");
+        System.out.println("\t\"Generate new solution\" to generate a new set of Santa and Human pairs.");
+        System.out.println("\t\"End\" to end the program");
     }
 
-    /**
-     * Print the usage for the setup mode
-     * The usage is all accepted inputs from the user and a brief explanation of that input's functionality.
-     */
     public void printSetupUsage() {
-        System.out.print("Usage:\n");
-        System.out.print("\t \"Help\" to print usage\n");
-        System.out.print("\t \"List\" to get current participant list\n");
-        System.out.print("\t \"Remove {name}\" to remove that name from the list\n");
-        System.out.print("\t \"Done\" when participants list is complete\n");
-        System.out.println("\t \"End\" to end the program");
+        System.out.println("Usage:");
+        System.out.println("\t\"Help\" to print usage");
+        System.out.println("\t\"List\" to get current participant list");
+        System.out.println("\t\"Remove {name}\" to remove that name from the list");
+        System.out.println("\t\"Done\" when participants list is complete");
+        System.out.println("\t\"End\" to end the program");
     }
 
-    /**
-     * Capitalize the first letter only of the name.
-     * Make all other letter lowercase.
-     * @param name The name to be capitalized
-     * @return The capitalized name
-     */
     public String capitalizeFirstLetterOnly(String name) {
-    if (name == null || name.isEmpty()) {
-        return name; // Return empty string as-is, avoids crash
-    }
-    return Character.toString(name.charAt(0)).toUpperCase() + name.toLowerCase().substring(1);
-}
-
-
-    /**
-     * Check to see if name is already in the list of participants
-     * @param name the name to be checked
-     * @return true if the name is already in the list, else return false
-     */
-    public boolean isDuplicateName(String name) {
-        for (var i = 0; i < participants.size(); i++) {
-            if (participants.get(i).equals(name)) {
-                return true;
-            }
+        if (name == null || name.isEmpty()) {
+            return name;
         }
-        return false;
+        return Character.toUpperCase(name.charAt(0)) + name.toLowerCase().substring(1);
     }
 
-    /**
-     * Allow user to setup the game by creating a list or participants
-     * Then, allow user to play the game to see what Human each Santa has
-     * @param args
-     */
+    public boolean isDuplicateName(String name) {
+        return participants.contains(name);
+    }
+
     public static void main(String[] args) {
-
-        //Setup
         SecretSanta s = new SecretSanta();
-
         Scanner in = new Scanner(System.in);
+
+        // Setup
         s.printSetupUsage();
 
-        while(true) {
-            System.out.println("Type: a participants name, \"done\" to play, or \"help\" to get usage.");
-            String name = in.nextLine();
+        while (true) {
+            System.out.println("\nType: a participant's name, \"done\" to play, or \"help\" to get usage.");
+            String name = in.nextLine().trim();
             name = s.capitalizeFirstLetterOnly(name);
+
             if (s.isDuplicateName(name)) {
                 System.out.println("The name \"" + name + "\" is already in your participants list. Please type a unique name.");
-            }
-            else if (name.equals("Help")) {
+            } else if (name.equalsIgnoreCase("Help")) {
                 s.printSetupUsage();
-            }
-            else if (name.equals("List")) {
-                if (s.participants.size() > 0) {
+            } else if (name.equalsIgnoreCase("List")) {
+                if (!s.participants.isEmpty()) {
                     System.out.println(s.generateParticipantsList());
-                }
-                else {
+                } else {
                     System.out.println("There are currently no participants in the list.");
                 }
-            }
-            else if (name.equals("Remove") || name.equals("Remove ")) {
+            } else if (name.equalsIgnoreCase("Remove") || name.equalsIgnoreCase("Remove ")) {
                 System.out.println("Please type a name to remove. Usage: \"Remove {name}\"");
-            }
-            else if (name.length() > "Remove".length()+1 && name.substring(0, "Remove".length()).equals("Remove")) {
-                String nameToBeRemoved = s.capitalizeFirstLetterOnly(name.substring("Remove".length() + 1, name.length()));
-                if (s.participants.contains(nameToBeRemoved)) {
-                    s.participants.remove(nameToBeRemoved);
-                    System.out.print(nameToBeRemoved + " was removed from the participants list.\n");
-                    if (s.participants.size() > 0) {
+            } else if (name.toLowerCase().startsWith("remove ")) {
+                String nameToRemove = s.capitalizeFirstLetterOnly(name.substring("Remove ".length()));
+                if (s.participants.contains(nameToRemove)) {
+                    s.participants.remove(nameToRemove);
+                    System.out.println(nameToRemove + " was removed from the participants list.");
+                    if (!s.participants.isEmpty()) {
                         System.out.println("Current participants: " + s.generateParticipantsList());
-                    }
-                    else {
+                    } else {
                         System.out.println("There are currently no participants in the list.");
                     }
+                } else {
+                    System.out.println(nameToRemove + " is not in the participants list: " + s.generateParticipantsList());
                 }
-                else {
-                    System.out.println(nameToBeRemoved + " is not in the participants list: " + s.generateParticipantsList());
-                }
-            }
-            else if (name.equals("Done")) {
+            } else if (name.equalsIgnoreCase("Done")) {
                 if (s.participants.size() < 3) {
-                    if (s.participants.size() == 1) {
-                        System.out.print("There is only " + s.participants.size() + " participant in your group.\n");
-                    }
-                    else {
-                        System.out.print("There are only " + s.participants.size() + " participants in your group.\n");
-                    }
-                    System.out.println("Please have at least 3 participants.");
-                }
-                else {
+                    System.out.println("Please have at least 3 participants. Current: " + s.participants.size());
+                } else {
                     break;
                 }
-            }
-            else if (name.equals("End")) {
+            } else if (name.equalsIgnoreCase("End")) {
                 return;
-            }
-            else {
+            } else {
                 s.addParticipant(name);
             }
-            System.out.println();
         }
 
         String allParticipants = s.generateParticipantsList();
-
         s.generateNewSantaSolution();
-
-        //Game Play
         s.printGameUsage();
 
-        JFrame frame = new JFrame();
-
-        while(true) {
+        // Game Play
+        while (true) {
             System.out.println("\nParticipants: " + allParticipants);
-            System.out.println("What is your name, Santa? ");
-            String santa = s.capitalizeFirstLetterOnly(in.nextLine());
+            System.out.println("What is your name, Santa?");
+            String santa = s.capitalizeFirstLetterOnly(in.nextLine().trim());
+
             if (s.santaToHuman.containsKey(santa)) {
-                JOptionPane.showMessageDialog(frame, "Your human is " + s.santaToHuman.get(santa));
-            }
-            else if (santa.equals("Help")) {
+                System.out.println("Your human is " + s.santaToHuman.get(santa));
+            } else if (santa.equalsIgnoreCase("Help")) {
                 s.printGameUsage();
-            }
-            else if (santa.equals("Edit")) {
-                main(args);
+            } else if (santa.equalsIgnoreCase("Edit")) {
+                main(args); // restart setup
                 return;
-            }
-            else if (santa.equals("Get my santa")) {
+            } else if (santa.equalsIgnoreCase("Get my santa")) {
                 System.out.println("For which Human would you like to know the Santa?");
-                String whichHuman = s.capitalizeFirstLetterOnly(in.nextLine());
-                JOptionPane.showMessageDialog(frame, "Santa: " + s.humanToSanta.get(whichHuman) + ". Human: " + whichHuman);
-            }
-            else if (santa.equals("Generate new solution")) {
+                String whichHuman = s.capitalizeFirstLetterOnly(in.nextLine().trim());
+                System.out.println("Santa: " + s.humanToSanta.get(whichHuman) + ". Human: " + whichHuman);
+            } else if (santa.equalsIgnoreCase("Generate new solution")) {
                 s.generateNewSantaSolution();
                 System.out.println("New solution generated.");
-            }
-            else if (santa.equals("End")) {
+            } else if (santa.equalsIgnoreCase("End")) {
                 System.out.println("\nThanks for playing!");
                 return;
-            }
-            else {
+            } else {
                 System.out.println(santa + " is not a participant. Please enter one of the participant names: " + allParticipants);
             }
         }
