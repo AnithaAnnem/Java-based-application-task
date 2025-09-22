@@ -1,7 +1,6 @@
 package SecretSantaJava;
 
 import java.util.*;
-import java.util.Scanner;
 
 public class SecretSanta {
 
@@ -82,7 +81,7 @@ public class SecretSanta {
         System.out.println("\t\"End\" to end the program");
     }
 
-    public String capitalizeFirstLetterOnly(String name) {
+    public static String capitalizeFirstLetterOnly(String name) {
         if (name == null || name.isEmpty()) {
             return name;
         }
@@ -95,15 +94,33 @@ public class SecretSanta {
 
     public static void main(String[] args) {
         SecretSanta s = new SecretSanta();
-        Scanner in = new Scanner(System.in);
 
-        // Setup
+        // 1️⃣ Check for PARTICIPANTS environment variable (non-interactive mode)
+        String participantsEnv = System.getenv("PARTICIPANTS");
+        if (participantsEnv != null && !participantsEnv.isEmpty()) {
+            for (String name : participantsEnv.split(",")) {
+                s.addParticipant(capitalizeFirstLetterOnly(name.trim()));
+            }
+
+            // Generate Secret Santa pairs
+            s.generateNewSantaSolution();
+
+            // Print results
+            System.out.println("\nSecret Santa Assignments:");
+            s.getSantaToHuman().forEach((santa, human) -> {
+                System.out.println(santa + " -> " + human);
+            });
+            return; // exit successfully
+        }
+
+        // 2️⃣ Fallback to interactive mode for local testing
+        Scanner in = new Scanner(System.in);
         s.printSetupUsage();
 
         while (true) {
             System.out.println("\nType: a participant's name, \"done\" to play, or \"help\" to get usage.");
             String name = in.nextLine().trim();
-            name = s.capitalizeFirstLetterOnly(name);
+            name = capitalizeFirstLetterOnly(name);
 
             if (s.isDuplicateName(name)) {
                 System.out.println("The name \"" + name + "\" is already in your participants list. Please type a unique name.");
@@ -115,27 +132,18 @@ public class SecretSanta {
                 } else {
                     System.out.println("There are currently no participants in the list.");
                 }
-            } else if (name.equalsIgnoreCase("Remove") || name.equalsIgnoreCase("Remove ")) {
-                System.out.println("Please type a name to remove. Usage: \"Remove {name}\"");
             } else if (name.toLowerCase().startsWith("remove ")) {
-                String nameToRemove = s.capitalizeFirstLetterOnly(name.substring("Remove ".length()));
+                String nameToRemove = capitalizeFirstLetterOnly(name.substring("remove ".length()).trim());
                 if (s.participants.contains(nameToRemove)) {
                     s.participants.remove(nameToRemove);
                     System.out.println(nameToRemove + " was removed from the participants list.");
-                    if (!s.participants.isEmpty()) {
-                        System.out.println("Current participants: " + s.generateParticipantsList());
-                    } else {
-                        System.out.println("There are currently no participants in the list.");
-                    }
                 } else {
-                    System.out.println(nameToRemove + " is not in the participants list: " + s.generateParticipantsList());
+                    System.out.println(nameToRemove + " is not in the participants list.");
                 }
             } else if (name.equalsIgnoreCase("Done")) {
                 if (s.participants.size() < 3) {
                     System.out.println("Please have at least 3 participants. Current: " + s.participants.size());
-                } else {
-                    break;
-                }
+                } else break;
             } else if (name.equalsIgnoreCase("End")) {
                 return;
             } else {
@@ -147,31 +155,19 @@ public class SecretSanta {
         s.generateNewSantaSolution();
         s.printGameUsage();
 
-        // Game Play
+        // Interactive gameplay
         while (true) {
             System.out.println("\nParticipants: " + allParticipants);
             System.out.println("What is your name, Santa?");
-            String santa = s.capitalizeFirstLetterOnly(in.nextLine().trim());
+            String santa = capitalizeFirstLetterOnly(in.nextLine().trim());
 
             if (s.santaToHuman.containsKey(santa)) {
                 System.out.println("Your human is " + s.santaToHuman.get(santa));
-            } else if (santa.equalsIgnoreCase("Help")) {
-                s.printGameUsage();
-            } else if (santa.equalsIgnoreCase("Edit")) {
-                main(args); // restart setup
-                return;
-            } else if (santa.equalsIgnoreCase("Get my santa")) {
-                System.out.println("For which Human would you like to know the Santa?");
-                String whichHuman = s.capitalizeFirstLetterOnly(in.nextLine().trim());
-                System.out.println("Santa: " + s.humanToSanta.get(whichHuman) + ". Human: " + whichHuman);
-            } else if (santa.equalsIgnoreCase("Generate new solution")) {
-                s.generateNewSantaSolution();
-                System.out.println("New solution generated.");
             } else if (santa.equalsIgnoreCase("End")) {
                 System.out.println("\nThanks for playing!");
                 return;
             } else {
-                System.out.println(santa + " is not a participant. Please enter one of the participant names: " + allParticipants);
+                System.out.println(santa + " is not a participant. Please enter a valid name.");
             }
         }
     }
