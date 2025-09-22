@@ -24,6 +24,7 @@
 
     <build>
         <plugins>
+            <!-- Ensure tests run -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -35,6 +36,7 @@
                 </configuration>
             </plugin>
 
+            <!-- Code coverage -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -55,6 +57,7 @@
                 </executions>
             </plugin>
 
+            <!-- Security scanning -->
             <plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
@@ -71,6 +74,21 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Add Main-Class to JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>com.example.MainApplication</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
         </plugins>
     </build>
