@@ -1,4 +1,4 @@
-package com.example;
+package SecretSantaJava;
 
 import javax.swing.*;
 import java.util.*;
