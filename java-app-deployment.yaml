@@ -17,3 +17,6 @@ spec:
         image: java-sample-app:1.0
         ports:
         - containerPort: 8080
+        env:
+        - name: PARTICIPANTS
+          value: "Alice,Bob,Charlie"
