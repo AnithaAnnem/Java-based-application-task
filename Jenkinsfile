@@ -136,6 +136,36 @@ pipeline {
             }
         }
 
+        stage('Docker Build & Scan - Trivy') {
+            steps {
+                echo "Building Docker image and scanning with Trivy..."
+                script {
+                    def imageName = "java-sample-app"
+                    def imageTag = "1.0"
+                    // Build Docker image
+                    sh "docker build -t ${imageName}:${imageTag} ."
+
+                    // Run Trivy scan
+                    sh """
+                        docker run --rm \
+                            -v /var/run/docker.sock:/var/run/docker.sock \
+                            -v ${WORKSPACE}:/mnt/wrkspace \
+                            aquasec/trivy image \
+                            --exit-code 1 \
+                            --severity HIGH,CRITICAL \
+                            --format json \
+                            --output /mnt/wrkspace/trivy-report.json \
+                            ${imageName}:${imageTag} || true
+                    """
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-report.json', fingerprint: true
+                }
+            }
+        }
+
         stage('Archive Artifacts') {
             steps {
                 echo "Archiving JAR artifact..."
