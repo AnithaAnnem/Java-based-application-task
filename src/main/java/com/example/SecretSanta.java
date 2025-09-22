@@ -139,8 +139,12 @@ public class SecretSanta {
      * @return The capitalized name
      */
     public String capitalizeFirstLetterOnly(String name) {
-        return Character.toString(name.charAt(0)).toUpperCase() + name.toLowerCase().substring(1);
+    if (name == null || name.isEmpty()) {
+        return name; // Return empty string as-is, avoids crash
     }
+    return Character.toString(name.charAt(0)).toUpperCase() + name.toLowerCase().substring(1);
+}
+
 
     /**
      * Check to see if name is already in the list of participants
