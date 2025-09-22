@@ -1,4 +1,4 @@
-package com.example;
+package SecretSantaJava;
 
 import org.junit.Test;
 import java.util.*;
